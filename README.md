@@ -1,4 +1,4 @@
-![eyecatch](/assets/eyecatch.png')
+<img src='/assets/eyecatch.png'>
 
 # Dark Mode Switcher
 Provides that can toggle light/dark color.
