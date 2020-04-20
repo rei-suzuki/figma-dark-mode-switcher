@@ -1,0 +1,10 @@
+{
+  "name": "Dark Mode Switcher",
+  "id": "808916768872750785",
+  "api": "1.0.0",
+  "main": "code.js",
+  "menu": [
+    {"name": "Dark mode", "command": "dark"},
+    {"name": "Light mode", "command": "light"}
+  ]
+}

@@ -1,0 +1,32 @@
+<h2>Change Color</h2>
+<div id="inputContent">
+  <input type="radio" name="theme" value="Dark" id="dark">Dark
+  <input type="radio" name="theme" value="Light" id="light">Light
+</div>
+<button id="create">Create</button>
+<button id="cancel">Cancel</button>
+<script>
+
+
+const radioDark = document.getElementById('dark')
+const radioLight = document.getElementById('light')
+
+document.getElementById('create').onclick = () => {
+  if (radioDark.checked) {
+    parent.postMessage({ pluginMessage: { theme: radioDark.value } }, '*')
+  } else {
+    parent.postMessage({ pluginMessage: { theme: radioLight.value } }, '*')
+  }
+}
+
+document.getElementById('cancel').onclick = () => {
+  parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*')
+}
+
+window.onmessage = (event) => {
+  if (event.data.pluginMessage.type === 'alert') {
+    alert(event.data.pluginMessage.content)
+  }
+}
+
+</script>
