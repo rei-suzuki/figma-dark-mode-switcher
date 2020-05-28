@@ -33,11 +33,18 @@ function main() {
 
 function replaceNodes(nodes: Array<any>): void {
   for (const node of nodes) {
-    const name: string = getPaintStyleNameByNode(node.fillStyleId)
-    if (name != null) {
-      const replacedColorStyleName: string = changeReplaceColorStyleName(name)
-      const replacedFillStyleId: string = getFillStyleIdByName(replacedColorStyleName)
+    const fillStyleName: string = getPaintStyleNameByNode(node.fillStyleId)
+    const strokeStyleName: string = getPaintStyleNameByNode(node.strokeStyleId)
+    if (fillStyleName != null) {
+      const replacedColorStyleName: string = changeReplaceColorStyleName(fillStyleName)
+      const replacedFillStyleId: string = getStyleIdByName(replacedColorStyleName)
       node.fillStyleId = replacedFillStyleId
+    }
+
+    if (strokeStyleName != null) {
+      const replacedStrokeColorStyleName: string = changeReplaceColorStyleName(strokeStyleName)
+      const replacedStrokeStyleId: string = getStyleIdByName(replacedStrokeColorStyleName)
+      node.strokeStyleId = replacedStrokeStyleId
     }
 
     if (node.type === 'COMPONENT' || node.type === 'INSTANCE' || node.type === 'FRAME' || node.type === 'GROUP' || node.type === 'PAGE') {
@@ -46,8 +53,8 @@ function replaceNodes(nodes: Array<any>): void {
   }
 }
 
-function getPaintStyleNameByNode(currentFillStyleId: string): string {
-  const style = localStyles.find(style => style.id == currentFillStyleId)
+function getPaintStyleNameByNode(currentStyleId: string): string {
+  const style = localStyles.find(style => style.id == currentStyleId)
   return (style != undefined) ? style.name : null
 }
 
@@ -68,7 +75,7 @@ function changeReplaceColorStyleName(paintStyleName: string): string {
   return replacedNodePaintStyleName.join('/')
 }
 
-function getFillStyleIdByName(replacedColorStyleName: string): string {
+function getStyleIdByName(replacedColorStyleName: string): string {
   const style = localStyles.find(style => style.name == replacedColorStyleName)
   return (style != undefined) ? style.id : null
 }

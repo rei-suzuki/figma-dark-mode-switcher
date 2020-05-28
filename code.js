@@ -31,19 +31,25 @@ function main() {
 }
 function replaceNodes(nodes) {
     for (const node of nodes) {
-        const name = getPaintStyleNameByNode(node.fillStyleId);
-        if (name != null) {
-            const replacedColorStyleName = changeReplaceColorStyleName(name);
-            const replacedFillStyleId = getFillStyleIdByName(replacedColorStyleName);
+        const fillStyleName = getPaintStyleNameByNode(node.fillStyleId);
+        const strokeStyleName = getPaintStyleNameByNode(node.strokeStyleId);
+        if (fillStyleName != null) {
+            const replacedColorStyleName = changeReplaceColorStyleName(fillStyleName);
+            const replacedFillStyleId = getStyleIdByName(replacedColorStyleName);
             node.fillStyleId = replacedFillStyleId;
+        }
+        if (strokeStyleName != null) {
+            const replacedStrokeColorStyleName = changeReplaceColorStyleName(strokeStyleName);
+            const replacedStrokeStyleId = getStyleIdByName(replacedStrokeColorStyleName);
+            node.strokeStyleId = replacedStrokeStyleId;
         }
         if (node.type === 'COMPONENT' || node.type === 'INSTANCE' || node.type === 'FRAME' || node.type === 'GROUP' || node.type === 'PAGE') {
             replaceNodes(node.children);
         }
     }
 }
-function getPaintStyleNameByNode(currentFillStyleId) {
-    const style = localStyles.find(style => style.id == currentFillStyleId);
+function getPaintStyleNameByNode(currentStyleId) {
+    const style = localStyles.find(style => style.id == currentStyleId);
     return (style != undefined) ? style.name : null;
 }
 function changeReplaceColorStyleName(paintStyleName) {
@@ -63,7 +69,7 @@ function changeReplaceColorStyleName(paintStyleName) {
     }
     return replacedNodePaintStyleName.join('/');
 }
-function getFillStyleIdByName(replacedColorStyleName) {
+function getStyleIdByName(replacedColorStyleName) {
     const style = localStyles.find(style => style.name == replacedColorStyleName);
     return (style != undefined) ? style.id : null;
 }
