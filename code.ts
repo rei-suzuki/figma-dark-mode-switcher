@@ -33,7 +33,7 @@ async function main() {
   figma.closePlugin()
 }
 
-function replaceNodes(nodes: Array<any>) {
+function replaceNodes(nodes: Array<any>): void {
   for (const node of nodes) {
     const fillStyleName: string = getPaintStyleNameByNode(node.fillStyleId)
     const strokeStyleName: string = getPaintStyleNameByNode(node.strokeStyleId)
