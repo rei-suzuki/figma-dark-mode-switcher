@@ -9,11 +9,14 @@ const darkStyleMap = {
 }
 let mode = undefined
 
-function main() {
+async function main() {
   if (figma.command == 'light') {
     mode = 'Light'
   } else if (figma.command == 'dark') {
     mode = 'Dark'
+  } else if (figma.command == 'saveFromTeamLibrary') {
+    const succeeded = await getTeamLibraryColors()
+    return figma.closePlugin(succeeded ? 'Style saved' : 'This document does not have styles')
   } else {
     figma.closePlugin()
   }
@@ -29,6 +32,14 @@ function main() {
   }
 
   figma.closePlugin()
+}
+
+async function getTeamLibraryColors() {
+  if (figma.getLocalPaintStyles().length != 0) {
+    await figma.clientStorage.setAsync('darkModeSwitcher.teamColorKeys', figma.getLocalPaintStyles().map(a => a.key))
+    return true
+  }
+  return false
 }
 
 function replaceNodes(nodes: Array<any>): void {
