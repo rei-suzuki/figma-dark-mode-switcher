@@ -5,6 +5,7 @@
   "main": "code.js",
   "menu": [
     {"name": "Dark mode", "command": "dark"},
-    {"name": "Light mode", "command": "light"}
+    {"name": "Light mode", "command": "light"},
+    {"name": "Save colorStyles from Team Library", "command": "saveFromTeamLibrary"}
   ]
 }
