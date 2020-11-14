@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 const Mode = {
     Dark: 'dark',
     Light: 'light',
+    Elevated: 'elevated',
 };
 let mode = undefined;
 const localStyles = figma.getLocalPaintStyles();
@@ -16,7 +17,7 @@ let teamStyles = [];
 let styleManager = undefined;
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
-        if (figma.command == Mode.Dark || figma.command == Mode.Light) {
+        if (Object.keys(Mode).find(key => Mode[key] === figma.command) != undefined) {
             mode = figma.command;
         }
         else if (figma.command == 'saveFromTeamLibrary') {

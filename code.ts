@@ -1,6 +1,7 @@
 const Mode = {
   Dark: 'dark',
   Light: 'light',
+  Elevated: 'elevated',
 }
 let mode = undefined
 const localStyles = figma.getLocalPaintStyles()
@@ -8,7 +9,7 @@ let teamStyles = []
 let styleManager: StyleManager = undefined
 
 async function main() {
-  if (figma.command == Mode.Dark || figma.command == Mode.Light) {
+  if (Object.keys(Mode).find(key => Mode[key] === figma.command) != undefined) {
     mode = figma.command
   } else if (figma.command == 'saveFromTeamLibrary') {
     const succeeded = await TeamColorsManager.saveTeamStyleKeysToStorage()
