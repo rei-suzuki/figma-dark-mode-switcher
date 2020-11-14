@@ -17,6 +17,7 @@ const darkStyleMap = {
     'Light': 'Dark',
 };
 let mode = undefined;
+let teamStyles = [];
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         if (figma.command == 'light') {
@@ -33,6 +34,7 @@ function main() {
             figma.closePlugin();
         }
         try {
+            teamStyles = yield fetchTeamStylesFromStorage();
             for (let i = 0; i < figma.currentPage.selection.length; i++) {
                 replaceNodes([figma.currentPage.selection[i]]);
             }
@@ -58,12 +60,12 @@ function replaceNodes(nodes) {
         const fillStyleName = getPaintStyleNameByNode(node.fillStyleId);
         const strokeStyleName = getPaintStyleNameByNode(node.strokeStyleId);
         if (fillStyleName != null) {
-            const replacedColorStyleName = changeReplaceColorStyleName(fillStyleName);
+            const replacedColorStyleName = replaceColorStyleName(fillStyleName);
             const replacedFillStyleId = getStyleIdByName(replacedColorStyleName);
             node.fillStyleId = replacedFillStyleId;
         }
         if (strokeStyleName != null) {
-            const replacedStrokeColorStyleName = changeReplaceColorStyleName(strokeStyleName);
+            const replacedStrokeColorStyleName = replaceColorStyleName(strokeStyleName);
             const replacedStrokeStyleId = getStyleIdByName(replacedStrokeColorStyleName);
             node.strokeStyleId = replacedStrokeStyleId;
         }
@@ -73,28 +75,52 @@ function replaceNodes(nodes) {
     }
 }
 function getPaintStyleNameByNode(currentStyleId) {
-    const style = localStyles.find(style => style.id == currentStyleId);
+    let style = localStyles.find(style => style.id == currentStyleId);
+    if (style != undefined) {
+        return style.name;
+    }
+    style = teamStyles.find(style => style.id == currentStyleId);
     return (style != undefined) ? style.name : null;
 }
-function changeReplaceColorStyleName(paintStyleName) {
+function replaceColorStyleName(paintStyleName) {
     const splitPaintStyleName = paintStyleName.split('/');
-    const replacedNodePaintStyleName = [];
+    const replacedNodePaintStyleNames = [];
     for (let i = 0; i < splitPaintStyleName.length; i++) {
         let name = splitPaintStyleName[i];
         if (mode == 'Light' && lightStyleMap[name] != undefined) {
-            replacedNodePaintStyleName.push(lightStyleMap[name]);
+            replacedNodePaintStyleNames.push(lightStyleMap[name]);
         }
         else if (mode == 'Dark' && darkStyleMap[name] != undefined) {
-            replacedNodePaintStyleName.push(darkStyleMap[name]);
+            replacedNodePaintStyleNames.push(darkStyleMap[name]);
         }
         else {
-            replacedNodePaintStyleName.push(name);
+            replacedNodePaintStyleNames.push(name);
         }
     }
-    return replacedNodePaintStyleName.join('/');
+    return replacedNodePaintStyleNames.join('/');
 }
 function getStyleIdByName(replacedColorStyleName) {
-    const style = localStyles.find(style => style.name == replacedColorStyleName);
+    let style = localStyles.find(style => style.name == replacedColorStyleName);
+    if (style != undefined) {
+        return style.id;
+    }
+    style = teamStyles.find(style => style.name == replacedColorStyleName);
     return (style != undefined) ? style.id : null;
+}
+function fetchTeamStylesFromStorage() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const teamColorKeys = yield figma.clientStorage.getAsync('darkModeSwitcher.teamColorKeys');
+        if (!teamColorKeys) {
+            throw new Error("The team colors were not found. Please run 'save' on the styles page before run any replace commands.");
+        }
+        const teamStyles = [];
+        for (let key of teamColorKeys) {
+            const style = yield figma.importStyleByKeyAsync(key);
+            if (style) {
+                teamStyles.push(style);
+            }
+        }
+        return teamStyles;
+    });
 }
 main();
