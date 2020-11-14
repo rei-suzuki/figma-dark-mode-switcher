@@ -1,20 +1,16 @@
 const localStyles = figma.getLocalPaintStyles()
-const lightStyleMap = {
-  'dark': 'light',
-  'Dark': 'Light',
-}
-const darkStyleMap = {
-  'light': 'dark',
-  'Light': 'Dark',
+const Mode = {
+  Dark: 'dark',
+  Light: 'light',
 }
 let mode = undefined
 let teamStyles = []
 
 async function main() {
   if (figma.command == 'light') {
-    mode = 'Light'
+    mode = Mode.Light
   } else if (figma.command == 'dark') {
-    mode = 'Dark'
+    mode = Mode.Dark
   } else if (figma.command == 'saveFromTeamLibrary') {
     const succeeded = await getTeamLibraryColors()
     return figma.closePlugin(succeeded ? 'Style saved' : 'This document does not have styles')
@@ -82,15 +78,33 @@ function replaceColorStyleName(paintStyleName: string): string {
 
   for (let i = 0; i < splitPaintStyleName.length; i++) {
     let name = splitPaintStyleName[i]
-    if (mode == 'Light' && lightStyleMap[name] != undefined) {
-      replacedNodePaintStyleNames.push(lightStyleMap[name])
-    } else if (mode == 'Dark' && darkStyleMap[name] != undefined) {
-      replacedNodePaintStyleNames.push(darkStyleMap[name])
+    if (isModeKeyword(name)) {
+      replacedNodePaintStyleNames.push(switchMode(capitalized(name)))
     } else {
       replacedNodePaintStyleNames.push(name)
     }
   }
   return replacedNodePaintStyleNames.join('/')
+}
+
+function isModeKeyword(name: string): boolean {
+  const found = Object.keys(Mode).find((mode) => mode.toLowerCase() === name.toLowerCase())
+  return (found != undefined)
+}
+
+function switchMode(capitalized: boolean): string {
+  if (capitalized) {
+    return capitalize(mode)
+  }
+  return mode
+}
+
+function capitalize(name: string): string {
+  return name.charAt(0).toUpperCase() + name.toLowerCase().slice(1)
+}
+
+function capitalized(name: string): boolean {
+  return (name === capitalize(name))
 }
 
 function getStyleIdByName(replacedColorStyleName: string): string {

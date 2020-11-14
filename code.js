@@ -7,23 +7,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const localStyles = figma.getLocalPaintStyles();
-const lightStyleMap = {
-    'dark': 'light',
-    'Dark': 'Light',
-};
-const darkStyleMap = {
-    'light': 'dark',
-    'Light': 'Dark',
+const Mode = {
+    Dark: 'dark',
+    Light: 'light',
 };
 let mode = undefined;
 let teamStyles = [];
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         if (figma.command == 'light') {
-            mode = 'Light';
+            mode = Mode.Light;
         }
         else if (figma.command == 'dark') {
-            mode = 'Dark';
+            mode = Mode.Dark;
         }
         else if (figma.command == 'saveFromTeamLibrary') {
             const succeeded = yield getTeamLibraryColors();
@@ -86,17 +82,30 @@ function replaceColorStyleName(paintStyleName) {
     const replacedNodePaintStyleNames = [];
     for (let i = 0; i < splitPaintStyleName.length; i++) {
         let name = splitPaintStyleName[i];
-        if (mode == 'Light' && lightStyleMap[name] != undefined) {
-            replacedNodePaintStyleNames.push(lightStyleMap[name]);
-        }
-        else if (mode == 'Dark' && darkStyleMap[name] != undefined) {
-            replacedNodePaintStyleNames.push(darkStyleMap[name]);
+        if (isModeKeyword(name)) {
+            replacedNodePaintStyleNames.push(switchMode(capitalized(name)));
         }
         else {
             replacedNodePaintStyleNames.push(name);
         }
     }
     return replacedNodePaintStyleNames.join('/');
+}
+function isModeKeyword(name) {
+    const found = Object.keys(Mode).find((mode) => mode.toLowerCase() === name.toLowerCase());
+    return (found != undefined);
+}
+function switchMode(capitalized) {
+    if (capitalized) {
+        return capitalize(mode);
+    }
+    return mode;
+}
+function capitalize(name) {
+    return name.charAt(0).toUpperCase() + name.toLowerCase().slice(1);
+}
+function capitalized(name) {
+    return (name === capitalize(name));
 }
 function getStyleIdByName(replacedColorStyleName) {
     let style = localStyles.find(style => style.name == replacedColorStyleName);
