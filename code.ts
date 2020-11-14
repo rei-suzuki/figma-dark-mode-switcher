@@ -96,11 +96,11 @@ function replaceColorStyleName(paintStyleName: string): string {
 function getStyleIdByName(replacedColorStyleName: string): string {
   let style = localStyles.find(style => style.name == replacedColorStyleName)
   if (style != undefined) {
-    return style.name
+    return style.id
   }
 
   style = teamStyles.find(style => style.name == replacedColorStyleName)
-  return (style != undefined) ? style.name : null
+  return (style != undefined) ? style.id : null
 }
 
 async function fetchTeamStylesFromStorage(): Promise<Array<BaseStyle>> {
