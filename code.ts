@@ -67,18 +67,18 @@ function replaceColorStyleName(paintStyleName: string): string {
 }
 
 class TeamColorsManager {
-  key: string = "darkModeSwitcher.teamColorKeys"
+  static key: string = "darkModeSwitcher.teamColorKeys"
 
   static async saveTeamStyleKeysToStorage(): Promise<boolean> {
     if (figma.getLocalPaintStyles().length != 0) {
-      await figma.clientStorage.setAsync('darkModeSwitcher.teamColorKeys', figma.getLocalPaintStyles().map(a => a.key))
+      await figma.clientStorage.setAsync(this.key, figma.getLocalPaintStyles().map(a => a.key))
       return true
     }
     return false
   }
 
   static async loadTeamStylesFromStorage(): Promise<Array<BaseStyle>> {
-    const teamColorKeys = await figma.clientStorage.getAsync('darkModeSwitcher.teamColorKeys')
+    const teamColorKeys = await figma.clientStorage.getAsync(this.key)
     if (!teamColorKeys) {
       console.log("The team colors were not found. Please run 'save' on the styles page before run any replace commands.")
       return []

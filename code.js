@@ -70,13 +70,10 @@ function replaceColorStyleName(paintStyleName) {
     return replacedNodePaintStyleNames.join('/');
 }
 class TeamColorsManager {
-    constructor() {
-        this.key = "darkModeSwitcher.teamColorKeys";
-    }
     static saveTeamStyleKeysToStorage() {
         return __awaiter(this, void 0, void 0, function* () {
             if (figma.getLocalPaintStyles().length != 0) {
-                yield figma.clientStorage.setAsync('darkModeSwitcher.teamColorKeys', figma.getLocalPaintStyles().map(a => a.key));
+                yield figma.clientStorage.setAsync(this.key, figma.getLocalPaintStyles().map(a => a.key));
                 return true;
             }
             return false;
@@ -84,7 +81,7 @@ class TeamColorsManager {
     }
     static loadTeamStylesFromStorage() {
         return __awaiter(this, void 0, void 0, function* () {
-            const teamColorKeys = yield figma.clientStorage.getAsync('darkModeSwitcher.teamColorKeys');
+            const teamColorKeys = yield figma.clientStorage.getAsync(this.key);
             if (!teamColorKeys) {
                 console.log("The team colors were not found. Please run 'save' on the styles page before run any replace commands.");
                 return [];
@@ -100,6 +97,7 @@ class TeamColorsManager {
         });
     }
 }
+TeamColorsManager.key = "darkModeSwitcher.teamColorKeys";
 class StyleManager {
     constructor(styles) {
         this.styles = styles;
