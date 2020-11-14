@@ -10,9 +10,9 @@ Exmaple: “Background/Dark/Primary” will change to “Background/Light/Primar
 After version 10, we finally start to support Team Library(formally known as DesignSystem). It needs some "hack"s for your project.
 
 ### Usage
-1. Open your DesignSystem edit page
+1. Open your DesignSystem edit page which has defined colors
 2. Choose 'Dark Mode Switcher' → 'Save colorStyles from Team Library'
-3. Retrun to your canvas and 'Dark Mode Switcher' → 'Dark mode' / 'Light mode' :tada:
+3. Retrun to your file, select Frame and 'Dark Mode Switcher' → 'Dark mode' / 'Light mode' :tada:
 
 ## Install
 https://www.figma.com/community/plugin/808916768872750785/Dark-Mode-Switcher
