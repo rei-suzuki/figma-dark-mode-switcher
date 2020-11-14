@@ -8,8 +8,9 @@ const darkStyleMap = {
   'Light': 'Dark',
 }
 let mode = undefined
+let teamStyles = []
 
-function main() {
+async function main() {
   if (figma.command == 'light') {
     mode = 'Light'
   } else if (figma.command == 'dark') {
@@ -19,6 +20,7 @@ function main() {
   }
 
   try {
+    teamStyles = await fetchTeamStylesFromStorage()
     for (let i = 0; i < figma.currentPage.selection.length; i++) {
       replaceNodes([figma.currentPage.selection[i]])
     }
@@ -31,7 +33,7 @@ function main() {
   figma.closePlugin()
 }
 
-function replaceNodes(nodes: Array<any>): void {
+function replaceNodes(nodes: Array<any>) {
   for (const node of nodes) {
     const fillStyleName: string = getPaintStyleNameByNode(node.fillStyleId)
     const strokeStyleName: string = getPaintStyleNameByNode(node.strokeStyleId)
@@ -54,7 +56,12 @@ function replaceNodes(nodes: Array<any>): void {
 }
 
 function getPaintStyleNameByNode(currentStyleId: string): string {
-  const style = localStyles.find(style => style.id == currentStyleId)
+  let style = localStyles.find(style => style.id == currentStyleId)
+  if (style != undefined) {
+    return style.name
+  }
+
+  style = teamStyles.find(style => style.id == currentStyleId)
   return (style != undefined) ? style.name : null
 }
 
@@ -76,8 +83,29 @@ function changeReplaceColorStyleName(paintStyleName: string): string {
 }
 
 function getStyleIdByName(replacedColorStyleName: string): string {
-  const style = localStyles.find(style => style.name == replacedColorStyleName)
-  return (style != undefined) ? style.id : null
+  let style = localStyles.find(style => style.name == replacedColorStyleName)
+  if (style != undefined) {
+    return style.name
+  }
+
+  style = teamStyles.find(style => style.name == replacedColorStyleName)
+  return (style != undefined) ? style.name : null
+}
+
+async function fetchTeamStylesFromStorage(): Promise<Array<BaseStyle>> {
+  const teamColorKeys = await figma.clientStorage.getAsync('darkModeSwitcher.teamColorKeys')
+  if (!teamColorKeys) {
+    throw new Error("The team colors were not found. Please run 'save' on the styles page before run any replace commands.")
+  }
+
+  const teamStyles = []
+  for (let key of teamColorKeys) {
+    const style = await figma.importStyleByKeyAsync(key)
+    if (style) {
+      teamStyles.push(style)
+    }
+  }
+  return teamStyles
 }
 
 main()
