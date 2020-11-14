@@ -106,7 +106,8 @@ function getStyleIdByName(replacedColorStyleName: string): string {
 async function fetchTeamStylesFromStorage(): Promise<Array<BaseStyle>> {
   const teamColorKeys = await figma.clientStorage.getAsync('darkModeSwitcher.teamColorKeys')
   if (!teamColorKeys) {
-    throw new Error("The team colors were not found. Please run 'save' on the styles page before run any replace commands.")
+    console.log("The team colors were not found. Please run 'save' on the styles page before run any replace commands.")
+    return []
   }
 
   const teamStyles = []
