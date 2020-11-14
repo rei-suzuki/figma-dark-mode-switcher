@@ -38,13 +38,13 @@ function replaceNodes(nodes: Array<any>) {
     const fillStyleName: string = getPaintStyleNameByNode(node.fillStyleId)
     const strokeStyleName: string = getPaintStyleNameByNode(node.strokeStyleId)
     if (fillStyleName != null) {
-      const replacedColorStyleName: string = changeReplaceColorStyleName(fillStyleName)
+      const replacedColorStyleName: string = replaceColorStyleName(fillStyleName)
       const replacedFillStyleId: string = getStyleIdByName(replacedColorStyleName)
       node.fillStyleId = replacedFillStyleId
     }
 
     if (strokeStyleName != null) {
-      const replacedStrokeColorStyleName: string = changeReplaceColorStyleName(strokeStyleName)
+      const replacedStrokeColorStyleName: string = replaceColorStyleName(strokeStyleName)
       const replacedStrokeStyleId: string = getStyleIdByName(replacedStrokeColorStyleName)
       node.strokeStyleId = replacedStrokeStyleId
     }
@@ -65,21 +65,21 @@ function getPaintStyleNameByNode(currentStyleId: string): string {
   return (style != undefined) ? style.name : null
 }
 
-function changeReplaceColorStyleName(paintStyleName: string): string {
+function replaceColorStyleName(paintStyleName: string): string {
   const splitPaintStyleName = paintStyleName.split('/')
-  const replacedNodePaintStyleName = []
+  const replacedNodePaintStyleNames = []
 
   for (let i = 0; i < splitPaintStyleName.length; i++) {
     let name = splitPaintStyleName[i]
     if (mode == 'Light' && lightStyleMap[name] != undefined) {
-      replacedNodePaintStyleName.push(lightStyleMap[name])
+      replacedNodePaintStyleNames.push(lightStyleMap[name])
     } else if (mode == 'Dark' && darkStyleMap[name] != undefined) {
-      replacedNodePaintStyleName.push(darkStyleMap[name])
+      replacedNodePaintStyleNames.push(darkStyleMap[name])
     } else {
-      replacedNodePaintStyleName.push(name)
+      replacedNodePaintStyleNames.push(name)
     }
   }
-  return replacedNodePaintStyleName.join('/')
+  return replacedNodePaintStyleNames.join('/')
 }
 
 function getStyleIdByName(replacedColorStyleName: string): string {
