@@ -1,29 +1,26 @@
-const localStyles = figma.getLocalPaintStyles()
-const lightStyleMap = {
-  'dark': 'light',
-  'Dark': 'Light',
-}
-const darkStyleMap = {
-  'light': 'dark',
-  'Light': 'Dark',
+const Mode = {
+  Dark: 'dark',
+  Light: 'light',
+  Elevated: 'elevated',
 }
 let mode = undefined
+const localStyles = figma.getLocalPaintStyles()
 let teamStyles = []
+let styleManager: StyleManager = undefined
 
 async function main() {
-  if (figma.command == 'light') {
-    mode = 'Light'
-  } else if (figma.command == 'dark') {
-    mode = 'Dark'
+  if (Object.keys(Mode).find(key => Mode[key] === figma.command) != undefined) {
+    mode = figma.command
   } else if (figma.command == 'saveFromTeamLibrary') {
-    const succeeded = await getTeamLibraryColors()
+    const succeeded = await TeamColorsManager.saveTeamStyleKeysToStorage()
     return figma.closePlugin(succeeded ? 'Style saved' : 'This document does not have styles')
   } else {
     figma.closePlugin()
   }
 
   try {
-    teamStyles = await fetchTeamStylesFromStorage()
+    teamStyles = await TeamColorsManager.loadTeamStylesFromStorage()
+    styleManager = new StyleManager([...localStyles, ...teamStyles])
     for (let i = 0; i < figma.currentPage.selection.length; i++) {
       replaceNodes([figma.currentPage.selection[i]])
     }
@@ -36,27 +33,19 @@ async function main() {
   figma.closePlugin()
 }
 
-async function getTeamLibraryColors() {
-  if (figma.getLocalPaintStyles().length != 0) {
-    await figma.clientStorage.setAsync('darkModeSwitcher.teamColorKeys', figma.getLocalPaintStyles().map(a => a.key))
-    return true
-  }
-  return false
-}
-
 function replaceNodes(nodes: Array<any>): void {
   for (const node of nodes) {
-    const fillStyleName: string = getPaintStyleNameByNode(node.fillStyleId)
-    const strokeStyleName: string = getPaintStyleNameByNode(node.strokeStyleId)
+    const fillStyleName: string = styleManager.getStyleNameById(node.fillStyleId)
+    const strokeStyleName: string = styleManager.getStyleNameById(node.strokeStyleId)
     if (fillStyleName != null) {
       const replacedColorStyleName: string = replaceColorStyleName(fillStyleName)
-      const replacedFillStyleId: string = getStyleIdByName(replacedColorStyleName)
+      const replacedFillStyleId: string = styleManager.getStyleIdByName(replacedColorStyleName)
       node.fillStyleId = replacedFillStyleId
     }
 
     if (strokeStyleName != null) {
       const replacedStrokeColorStyleName: string = replaceColorStyleName(strokeStyleName)
-      const replacedStrokeStyleId: string = getStyleIdByName(replacedStrokeColorStyleName)
+      const replacedStrokeStyleId: string = styleManager.getStyleIdByName(replacedStrokeColorStyleName)
       node.strokeStyleId = replacedStrokeStyleId
     }
 
@@ -66,58 +55,95 @@ function replaceNodes(nodes: Array<any>): void {
   }
 }
 
-function getPaintStyleNameByNode(currentStyleId: string): string {
-  let style = localStyles.find(style => style.id == currentStyleId)
-  if (style != undefined) {
-    return style.name
-  }
-
-  style = teamStyles.find(style => style.id == currentStyleId)
-  return (style != undefined) ? style.name : null
-}
-
 function replaceColorStyleName(paintStyleName: string): string {
   const splitPaintStyleName = paintStyleName.split('/')
   const replacedNodePaintStyleNames = []
 
   for (let i = 0; i < splitPaintStyleName.length; i++) {
-    let name = splitPaintStyleName[i]
-    if (mode == 'Light' && lightStyleMap[name] != undefined) {
-      replacedNodePaintStyleNames.push(lightStyleMap[name])
-    } else if (mode == 'Dark' && darkStyleMap[name] != undefined) {
-      replacedNodePaintStyleNames.push(darkStyleMap[name])
-    } else {
-      replacedNodePaintStyleNames.push(name)
-    }
+    const name = new StyleKeyword(splitPaintStyleName[i], mode)
+    replacedNodePaintStyleNames.push(name.switch())
   }
   return replacedNodePaintStyleNames.join('/')
 }
 
-function getStyleIdByName(replacedColorStyleName: string): string {
-  let style = localStyles.find(style => style.name == replacedColorStyleName)
-  if (style != undefined) {
-    return style.id
+class TeamColorsManager {
+  static key: string = "darkModeSwitcher.teamColorKeys"
+
+  static async saveTeamStyleKeysToStorage(): Promise<boolean> {
+    if (figma.getLocalPaintStyles().length != 0) {
+      await figma.clientStorage.setAsync(this.key, figma.getLocalPaintStyles().map(a => a.key))
+      return true
+    }
+    return false
   }
 
-  style = teamStyles.find(style => style.name == replacedColorStyleName)
-  return (style != undefined) ? style.id : null
+  static async loadTeamStylesFromStorage(): Promise<Array<BaseStyle>> {
+    const teamColorKeys = await figma.clientStorage.getAsync(this.key)
+    if (!teamColorKeys) {
+      console.log("The team colors were not found. Please run 'save' on the styles page before run any replace commands.")
+      return []
+    }
+
+    const teamStyles = []
+    for (let key of teamColorKeys) {
+      const style = await figma.importStyleByKeyAsync(key)
+      if (style) {
+        teamStyles.push(style)
+      }
+    }
+    return teamStyles
+  }
 }
 
-async function fetchTeamStylesFromStorage(): Promise<Array<BaseStyle>> {
-  const teamColorKeys = await figma.clientStorage.getAsync('darkModeSwitcher.teamColorKeys')
-  if (!teamColorKeys) {
-    console.log("The team colors were not found. Please run 'save' on the styles page before run any replace commands.")
-    return []
+class StyleManager {
+  styles: Array<BaseStyle>
+
+  constructor(styles: Array<BaseStyle>) {
+    this.styles = styles
   }
 
-  const teamStyles = []
-  for (let key of teamColorKeys) {
-    const style = await figma.importStyleByKeyAsync(key)
-    if (style) {
-      teamStyles.push(style)
-    }
+  getStyleNameById(currentStyleId: string): string {
+    let style = this.styles.find(style => style.id == currentStyleId)
+    return (style != undefined) ? style.name : null
   }
-  return teamStyles
+
+  getStyleIdByName(replacedColorStyleName: string): string {
+    let style = this.styles.find(style => style.name == replacedColorStyleName)
+    return (style != undefined) ? style.id : null
+  }
+}
+
+class StyleKeyword {
+  name: string
+  mode: string
+
+  constructor(name: string, mode: string) {
+    this.name = name
+    this.mode = mode
+  }
+
+  switch(): string {
+    if (!this.isModeKeyword) {
+      return this.name
+    }
+    if (this.capitalized(this.name)) {
+      return this.capitalize(this.mode)
+    }
+    return this.mode
+  }
+
+  get isModeKeyword(): boolean {
+    const found = Object.keys(Mode).find((mode) => mode.toLowerCase() === this.name.toLowerCase())
+    return (found != undefined)
+  }
+
+  capitalize(text: string): string {
+    return text.charAt(0).toUpperCase() + text.toLowerCase().slice(1)
+  }
+
+  capitalized(text: string): boolean {
+    return (text === this.capitalize(text))
+  }
 }
 
 main()
