@@ -3,11 +3,12 @@
 # Dark Mode Switcher
 Provides that can toggle light/dark color.
 
-You can specify your favor ColorStyle which separated by “/” and contains “Dark"("dark"), “Light”("light") or “Elevated”("elevated") key.
+You can specify your favor ColorStyle which contains “Dark"("dark"), “Light”("light") or “Elevated”("elevated") key.
 Exmaple:
 
 - `Background/Dark/Primary` :point_right: `Background/Light/Primary`
 - `Background/Light/Primary` :point_right: `Background/Elevated/Primary`
+- `Background Primary (Light)` :point_right: `Background Primary (Dark)`
 
 
 ## NOTE: For Team Library Supports
