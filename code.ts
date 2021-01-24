@@ -38,13 +38,13 @@ function replaceNodes(nodes: Array<any>): void {
     const fillStyleName: string = styleManager.getStyleNameById(node.fillStyleId)
     const strokeStyleName: string = styleManager.getStyleNameById(node.strokeStyleId)
     if (fillStyleName != null) {
-      const replacedColorStyleName: string = replaceColorStyleName(fillStyleName)
+      const replacedColorStyleName: string = Replacer.replace(fillStyleName, mode)
       const replacedFillStyleId: string = styleManager.getStyleIdByName(replacedColorStyleName)
       node.fillStyleId = replacedFillStyleId
     }
 
     if (strokeStyleName != null) {
-      const replacedStrokeColorStyleName: string = replaceColorStyleName(strokeStyleName)
+      const replacedStrokeColorStyleName: string = Replacer.replace(strokeStyleName, mode)
       const replacedStrokeStyleId: string = styleManager.getStyleIdByName(replacedStrokeColorStyleName)
       node.strokeStyleId = replacedStrokeStyleId
     }
@@ -54,18 +54,6 @@ function replaceNodes(nodes: Array<any>): void {
     }
   }
 }
-
-function replaceColorStyleName(paintStyleName: string): string {
-  const splitPaintStyleName = paintStyleName.split('/')
-  const replacedNodePaintStyleNames = []
-
-  for (let i = 0; i < splitPaintStyleName.length; i++) {
-    const name = new StyleKeyword(splitPaintStyleName[i], mode)
-    replacedNodePaintStyleNames.push(name.switch())
-  }
-  return replacedNodePaintStyleNames.join('/')
-}
-
 class TeamColorsManager {
   static key: string = "darkModeSwitcher.teamColorKeys"
 
@@ -117,36 +105,23 @@ class StyleManager {
   }
 }
 
-class StyleKeyword {
-  name: string
-  mode: string
-
-  constructor(name: string, mode: string) {
-    this.name = name
-    this.mode = mode
-  }
-
-  switch(): string {
-    if (!this.isModeKeyword) {
-      return this.name
+class Replacer {
+  static replace(name: string, to: string): string {
+    const keywords = Object.keys(Mode).map((key) => Mode[key])
+    for (let from of keywords) {
+      if (name.match(from)) {
+        return name.replace(from, to)
+      }
+      const capitalizedFrom = this.capitalize(from)
+      if (name.match(capitalizedFrom)) {
+        return name.replace(capitalizedFrom, this.capitalize(to))
+      }
     }
-    if (this.capitalized(this.name)) {
-      return this.capitalize(this.mode)
-    }
-    return this.mode
+    return name
   }
 
-  get isModeKeyword(): boolean {
-    const found = Object.keys(Mode).find((mode) => mode.toLowerCase() === this.name.toLowerCase())
-    return (found != undefined)
-  }
-
-  capitalize(text: string): string {
+  static capitalize(text: string): string {
     return text.charAt(0).toUpperCase() + text.toLowerCase().slice(1)
-  }
-
-  capitalized(text: string): boolean {
-    return (text === this.capitalize(text))
   }
 }
 
