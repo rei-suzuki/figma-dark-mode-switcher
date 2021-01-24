@@ -22,7 +22,12 @@ async function main() {
     teamStyles = await TeamColorsManager.loadTeamStylesFromStorage()
     styleManager = new StyleManager([...localStyles, ...teamStyles])
     for (let i = 0; i < figma.currentPage.selection.length; i++) {
-      replaceNodes([figma.currentPage.selection[i]])
+      try {
+        replaceNodes([figma.currentPage.selection[i]])
+      } catch (e) {
+        const error = e.toString()
+        figma.notify(error)
+      }
     }
   }
   catch (e) {
