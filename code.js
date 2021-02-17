@@ -52,12 +52,12 @@ function replaceNodes(nodes) {
         const fillStyleName = styleManager.getStyleNameById(node.fillStyleId);
         const strokeStyleName = styleManager.getStyleNameById(node.strokeStyleId);
         if (fillStyleName != null) {
-            const replacedColorStyleName = replaceColorStyleName(fillStyleName);
+            const replacedColorStyleName = Replacer.replace(fillStyleName, mode);
             const replacedFillStyleId = styleManager.getStyleIdByName(replacedColorStyleName);
             node.fillStyleId = replacedFillStyleId;
         }
         if (strokeStyleName != null) {
-            const replacedStrokeColorStyleName = replaceColorStyleName(strokeStyleName);
+            const replacedStrokeColorStyleName = Replacer.replace(strokeStyleName, mode);
             const replacedStrokeStyleId = styleManager.getStyleIdByName(replacedStrokeColorStyleName);
             node.strokeStyleId = replacedStrokeStyleId;
         }
@@ -65,15 +65,6 @@ function replaceNodes(nodes) {
             replaceNodes(node.children);
         }
     }
-}
-function replaceColorStyleName(paintStyleName) {
-    const splitPaintStyleName = paintStyleName.split('/');
-    const replacedNodePaintStyleNames = [];
-    for (let i = 0; i < splitPaintStyleName.length; i++) {
-        const name = new StyleKeyword(splitPaintStyleName[i], mode);
-        replacedNodePaintStyleNames.push(name.switch());
-    }
-    return replacedNodePaintStyleNames.join('/');
 }
 class TeamColorsManager {
     static saveTeamStyleKeysToStorage() {
@@ -122,29 +113,22 @@ class StyleManager {
         return (style != undefined) ? style.id : null;
     }
 }
-class StyleKeyword {
-    constructor(name, mode) {
-        this.name = name;
-        this.mode = mode;
-    }
-    switch() {
-        if (!this.isModeKeyword) {
-            return this.name;
+class Replacer {
+    static replace(name, to) {
+        const keywords = Object.keys(Mode).map((key) => Mode[key]);
+        for (let from of keywords) {
+            if (name.match(from)) {
+                return name.replace(from, to);
+            }
+            const capitalizedFrom = this.capitalize(from);
+            if (name.match(capitalizedFrom)) {
+                return name.replace(capitalizedFrom, this.capitalize(to));
+            }
         }
-        if (this.capitalized(this.name)) {
-            return this.capitalize(this.mode);
-        }
-        return this.mode;
+        return name;
     }
-    get isModeKeyword() {
-        const found = Object.keys(Mode).find((mode) => mode.toLowerCase() === this.name.toLowerCase());
-        return (found != undefined);
-    }
-    capitalize(text) {
+    static capitalize(text) {
         return text.charAt(0).toUpperCase() + text.toLowerCase().slice(1);
-    }
-    capitalized(text) {
-        return (text === this.capitalize(text));
     }
 }
 main();
