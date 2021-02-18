@@ -9,6 +9,8 @@ let teamStyles = []
 let styleManager: StyleManager = undefined
 
 async function main() {
+  setRelaunchDataForPage()
+
   if (Object.keys(Mode).find(key => Mode[key] === figma.command) != undefined) {
     mode = figma.command
   } else if (figma.command == 'saveFromTeamLibrary') {
@@ -38,7 +40,19 @@ async function main() {
   figma.closePlugin()
 }
 
+function setRelaunchDataForPage(): void {
+  figma.currentPage.setRelaunchData({ "saveFromTeamLibrary": "" })
+}
+
+function setRelaunchDataForNodes(nodes: Array<any>): void {
+  for (const node of nodes) {
+    node.setRelaunchData({"dark": "", "light": "", "elevated": ""})
+  }
+}
+
 function replaceNodes(nodes: Array<any>): void {
+  setRelaunchDataForNodes(nodes)
+
   for (const node of nodes) {
     const fillStyleName: string = styleManager.getStyleNameById(node.fillStyleId)
     const strokeStyleName: string = styleManager.getStyleNameById(node.strokeStyleId)

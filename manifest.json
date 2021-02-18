@@ -8,5 +8,11 @@
     {"name": "Elevated Dark mode", "command": "elevated"},
     {"name": "Light mode", "command": "light"},
     {"name": "Save colorStyles from Team Library", "command": "saveFromTeamLibrary"}
+  ],
+  "relaunchButtons": [
+    {"command": "dark", "name": "Dark Mode", "multipleSelection": true},
+    {"command": "elevated", "name": "Elevated Mode", "multipleSelection": true},
+    {"command": "light", "name": "Light Mode", "multipleSelection": true},
+    {"command": "saveFromTeamLibrary", "name": "Save colorStyles from Team Library", "multipleSelection": true}
   ]
 }
