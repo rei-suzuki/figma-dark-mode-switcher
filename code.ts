@@ -77,17 +77,7 @@ class TeamColorsManager {
       return []
     }
 
-    const teamStyles = []
-    for (let key of teamColorKeys) {
-      try {
-        const style = await figma.importStyleByKeyAsync(key)
-        if (style) {
-          teamStyles.push(style)
-        }
-      } catch (e) {
-        console.log(e)
-      }
-    }
+    const teamStyles = await Promise.all(teamColorKeys.map((k: string) => figma.importStyleByKeyAsync(k)))
     return teamStyles
   }
 }
