@@ -5,6 +5,7 @@ const Mode = {
 }
 let mode = undefined
 const localStyles = figma.getLocalPaintStyles()
+const localEffectStyles = figma.getLocalEffectStyles()
 let teamStyles = []
 let styleManager: StyleManager = undefined
 
@@ -20,9 +21,10 @@ async function main() {
 
   try {
     teamStyles = await TeamColorsManager.loadTeamStylesFromStorage()
-    styleManager = new StyleManager([...localStyles, ...teamStyles])
+    styleManager = new StyleManager([...localStyles, ...localEffectStyles, ...teamStyles])
     for (let i = 0; i < figma.currentPage.selection.length; i++) {
       try {
+        console.log(localEffectStyles)
         replaceNodes([figma.currentPage.selection[i]])
       } catch (e) {
         const error = e.toString()
@@ -42,6 +44,7 @@ function replaceNodes(nodes: Array<any>): void {
   for (const node of nodes) {
     const fillStyleName: string = styleManager.getStyleNameById(node.fillStyleId)
     const strokeStyleName: string = styleManager.getStyleNameById(node.strokeStyleId)
+    const effectStyleName: string = styleManager.getStyleNameById(node.effectStyleId)
     if (fillStyleName != null) {
       const replacedColorStyleName: string = Replacer.replace(fillStyleName, mode)
       const replacedFillStyleId: string = styleManager.getStyleIdByName(replacedColorStyleName)
@@ -52,6 +55,12 @@ function replaceNodes(nodes: Array<any>): void {
       const replacedStrokeColorStyleName: string = Replacer.replace(strokeStyleName, mode)
       const replacedStrokeStyleId: string = styleManager.getStyleIdByName(replacedStrokeColorStyleName)
       node.strokeStyleId = replacedStrokeStyleId
+    }
+
+    if (effectStyleName != null) {
+      const replcacedEffectStyleName: string = Replacer.replace(effectStyleName, mode)
+      const replacedEffectStyleId: string = styleManager.getStyleIdByName(replcacedEffectStyleName)
+      node.effectStyleId = replacedEffectStyleId
     }
 
     if (node.type === 'COMPONENT' || node.type === 'INSTANCE' || node.type === 'FRAME' || node.type === 'GROUP' || node.type === 'PAGE') {
@@ -70,7 +79,7 @@ class TeamColorsManager {
     return false
   }
 
-  static async loadTeamStylesFromStorage(): Promise<Array<BaseStyle>> {
+  static async loadTeamStylesFromStorage(): Promise<Array<any>> {
     const teamColorKeys = await figma.clientStorage.getAsync(this.key)
     if (!teamColorKeys) {
       console.log("The team colors were not found. Please run 'save' on the styles page before run any replace commands.")
