@@ -1,8 +1,9 @@
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -13,6 +14,7 @@ const Mode = {
 };
 let mode = undefined;
 const localStyles = figma.getLocalPaintStyles();
+const localEffectStyles = figma.getLocalEffectStyles();
 let teamStyles = [];
 let styleManager = undefined;
 function main() {
@@ -29,9 +31,10 @@ function main() {
         }
         try {
             teamStyles = yield TeamColorsManager.loadTeamStylesFromStorage();
-            styleManager = new StyleManager([...localStyles, ...teamStyles]);
+            styleManager = new StyleManager([...localStyles, ...localEffectStyles, ...teamStyles]);
             for (let i = 0; i < figma.currentPage.selection.length; i++) {
                 try {
+                    console.log(localEffectStyles);
                     replaceNodes([figma.currentPage.selection[i]]);
                 }
                 catch (e) {
@@ -51,6 +54,7 @@ function replaceNodes(nodes) {
     for (const node of nodes) {
         const fillStyleName = styleManager.getStyleNameById(node.fillStyleId);
         const strokeStyleName = styleManager.getStyleNameById(node.strokeStyleId);
+        const effectStyleName = styleManager.getStyleNameById(node.effectStyleId);
         if (fillStyleName != null) {
             const replacedColorStyleName = Replacer.replace(fillStyleName, mode);
             const replacedFillStyleId = styleManager.getStyleIdByName(replacedColorStyleName);
@@ -60,6 +64,11 @@ function replaceNodes(nodes) {
             const replacedStrokeColorStyleName = Replacer.replace(strokeStyleName, mode);
             const replacedStrokeStyleId = styleManager.getStyleIdByName(replacedStrokeColorStyleName);
             node.strokeStyleId = replacedStrokeStyleId;
+        }
+        if (effectStyleName != null) {
+            const replcacedEffectStyleName = Replacer.replace(effectStyleName, mode);
+            const replacedEffectStyleId = styleManager.getStyleIdByName(replcacedEffectStyleName);
+            node.effectStyleId = replacedEffectStyleId;
         }
         if (node.type === 'COMPONENT' || node.type === 'INSTANCE' || node.type === 'FRAME' || node.type === 'GROUP' || node.type === 'PAGE') {
             replaceNodes(node.children);
@@ -83,19 +92,8 @@ class TeamColorsManager {
                 console.log("The team colors were not found. Please run 'save' on the styles page before run any replace commands.");
                 return [];
             }
-            const teamStyles = [];
-            for (let key of teamColorKeys) {
-                try {
-                    const style = yield figma.importStyleByKeyAsync(key);
-                    if (style) {
-                        teamStyles.push(style);
-                    }
-                }
-                catch (e) {
-                    console.log(e);
-                }
-            }
-            return teamStyles;
+            const teamStyles = yield Promise.all(teamColorKeys.map((k) => figma.importStyleByKeyAsync(k).catch(_e => null)));
+            return teamStyles.filter(s => s != null);
         });
     }
 }
