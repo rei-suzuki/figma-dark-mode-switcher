@@ -17,6 +17,7 @@ let teamStyles = [];
 let styleManager = undefined;
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
+        setRelaunchDataForPage();
         if (Object.keys(Mode).find(key => Mode[key] === figma.command) != undefined) {
             mode = figma.command;
         }
@@ -47,7 +48,16 @@ function main() {
         figma.closePlugin();
     });
 }
+function setRelaunchDataForPage() {
+    figma.currentPage.setRelaunchData({ "saveFromTeamLibrary": "" });
+}
+function setRelaunchDataForNodes(nodes) {
+    for (const node of nodes) {
+        node.setRelaunchData({ "dark": "", "light": "", "elevated": "" });
+    }
+}
 function replaceNodes(nodes) {
+    setRelaunchDataForNodes(nodes);
     for (const node of nodes) {
         const fillStyleName = styleManager.getStyleNameById(node.fillStyleId);
         const strokeStyleName = styleManager.getStyleNameById(node.strokeStyleId);
